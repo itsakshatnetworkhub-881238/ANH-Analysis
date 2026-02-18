@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANH Login</title>
+
+<style>
+
+/* ===== ROOT VARIABLES ===== */
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --accent:#2563eb;
+  --accent-light:#3b82f6;
+  --danger:#dc2626;
+  --success:#16a34a;
+  --text:#f1f5f9;
+}
+
+/* ===== GLOBAL ===== */
+body{
+  margin:0;
+  font-family:system-ui, -apple-system, sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--card);
+  padding:30px;
+  border-radius:14px;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 15px 40px rgba(0,0,0,.5);
+  transition:.3s ease;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 20px 50px rgba(0,0,0,.7);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* ===== INPUT ===== */
+.input-group{
+  margin-bottom:15px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:white;
+  transition:.3s;
+}
+
+input:focus{
+  border-color:var(--accent);
+  outline:none;
+  box-shadow:0 0 10px rgba(37,99,235,.4);
+}
+
+/* ===== BUTTON ===== */
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.3s;
+}
+
+button:hover{
+  background:var(--accent-light);
+}
+
+/* ===== STATUS ===== */
+.status{
+  margin-top:10px;
+  font-size:14px;
+  text-align:center;
+}
+
+/* ===== MEDIA ===== */
+@media (min-width:768px){
+  .card{ max-width:500px; }
+}
+
+@media (min-width:1024px){
+  .card{ max-width:550px; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Akshat Network Hub Secure Login</h2>
+
+<div class="input-group">
+<input type="email" id="email" placeholder="Email" required>
+</div>
+
+<div class="input-group">
+<input type="password" id="password" placeholder="Password" required>
+</div>
+
+<button onclick="login()">Login</button>
+
+<div class="status" id="status"></div>
+
+<p style="text-align:center;margin-top:15px;">
+<a href="signup.htm" style="color:#3b82f6;">Create Account</a> |
+<a href="recovery.htm" style="color:#3b82f6;">Forgot Password?</a>
+</p>
+
+</div>
+
+<script>
+
+/* ===== DATABASE INIT ===== */
+const DB_NAME="ANH_DB";
+let db;
+
+const req=indexedDB.open(DB_NAME,1);
+req.onupgradeneeded=e=>{
+  db=e.target.result;
+  if(!db.objectStoreNames.contains("users")){
+    db.createObjectStore("users",{keyPath:"email"});
+  }
+};
+req.onsuccess=e=>{db=e.target.result};
+
+/* ===== ANH HASH ===== */
+function generateANHHash(password){
+  const ascii=password.split('').map(c=>c.charCodeAt(0)).join('');
+  const seq=['anh','nah','han','nha'];
+  let result='',ptr=0;
+
+  for(let i=0;i<ascii.length;i+=6){
+    result+=ascii.substring(i,i+6);
+    if(i+6<ascii.length){
+      result+=seq[ptr];
+      ptr=(ptr+1)%seq.length;
+    }
+  }
+  return result;
+}
+
+/* ===== LOGIN ATTEMPT LIMIT ===== */
+let attempts=0;
+const MAX_ATTEMPTS=5;
+
+/* ===== LOGIN FUNCTION ===== */
+function login(){
+
+  if(attempts>=MAX_ATTEMPTS){
+    status.innerHTML="<span style='color:red;'>Too many attempts. Refresh page.</span>";
+    return;
+  }
+
+  const emailVal=email.value.trim();
+  const passVal=password.value;
+
+  if(!emailVal || !passVal){
+    status.innerHTML="<span style='color:red;'>All fields required.</span>";
+    return;
+  }
+
+  const tx=db.transaction("users","readonly");
+  const store=tx.objectStore("users");
+  const request=store.get(emailVal);
+
+  request.onsuccess=function(){
+    const user=request.result;
+
+    if(!user){
+      attempts++;
+      status.innerHTML="<span style='color:red;'>Account not found.</span>";
+      return;
+    }
+
+    const hash=generateANHHash(passVal);
+
+    if(hash===user.password){
+
+      /* ===== SESSION CREATION ===== */
+      const expiry=Date.now()+(30*60*1000);
+
+      sessionStorage.setItem("ANH_ACTIVE_USER",emailVal);
+      sessionStorage.setItem("ANH_SESSION_EXPIRY",expiry);
+
+      status.innerHTML="<span style='color:green;'>Login Successful. Redirecting...</span>";
+
+      setTimeout(()=>{
+        window.location.href="index.htm";
+      },1000);
+
+    }else{
+      attempts++;
+      status.innerHTML="<span style='color:red;'>Incorrect password.</span>";
+    }
+  };
+}
+
+</script>
+
+</body>
+</html>
