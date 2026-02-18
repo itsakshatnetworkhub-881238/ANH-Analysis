@@ -16,18 +16,18 @@
 
 <link rel="canonical" href="https://akshat-881236.github.io/ANH-Analysis/">
 
-<!-- ================= OPEN GRAPH ================= -->
+<!-- Open Graph -->
 <meta property="og:title" content="ANH User Analysis Dashboard">
 <meta property="og:description" content="Privacy-first client-side analytics engine powered by Scripto Algorithm.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://akshat-881236.github.io/ANH-Analysis/">
 
-<!-- ================= TWITTER ================= -->
+<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ANH User Analysis Dashboard">
 <meta name="twitter:description" content="Akshat Network Hub - Client Governance & Analytics System">
 
-<!-- ================= STRUCTURED DATA ================= -->
+<!-- Structured Data -->
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
@@ -43,17 +43,17 @@
 }
 </script>
 
-<!-- Bootstrap Icons -->
+<!-- Icons & Charts -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-/* ================= MOBILE FIRST ================= */
+/* ================= GLOBAL ================= */
 
 :root{
   --bg:#0f172a;
+  --sidebar:#111827;
   --card:#1e293b;
   --accent:#3b82f6;
   --text:#f1f5f9;
@@ -65,46 +65,82 @@ body{
   font-family:system-ui,-apple-system,sans-serif;
   background:var(--bg);
   color:var(--text);
-}
-
-/* ===== NAVBAR ===== */
-.navbar{
-  background:#111827;
-  padding:15px;
   display:flex;
-  flex-direction:column;
-  gap:10px;
+  min-height:100vh;
 }
 
-.navbar h1{
-  margin:0;
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+  width:240px;
+  background:var(--sidebar);
+  padding:20px;
+  position:fixed;
+  height:100%;
+  left:0;
+  top:0;
+  transition:.3s ease;
+  box-shadow:4px 0 25px rgba(0,0,0,.6);
+  z-index:1000;
+}
+
+.sidebar.closed{
+  left:-260px;
+}
+
+.sidebar h2{
+  margin-bottom:25px;
   font-size:18px;
 }
 
-.nav-links{
+.sidebar a{
   display:flex;
-  flex-wrap:wrap;
+  align-items:center;
   gap:10px;
-}
-
-.nav-links a{
   text-decoration:none;
   color:var(--text);
-  background:var(--card);
-  padding:8px 12px;
+  padding:10px;
   border-radius:8px;
-  font-size:13px;
+  margin-bottom:8px;
   transition:.3s;
+  font-size:14px;
 }
 
-.nav-links a:hover{
+.sidebar a:hover{
   background:var(--accent);
 }
 
-/* ===== MAIN CONTENT ===== */
-.container{
-  padding:20px;
+/* ================= MAIN ================= */
+
+.main{
+  flex:1;
+  margin-left:240px;
+  padding:25px;
+  transition:.3s ease;
 }
+
+.main.full{
+  margin-left:0;
+}
+
+/* ================= TOPBAR ================= */
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.menu-btn{
+  font-size:22px;
+  background:none;
+  border:none;
+  color:white;
+  cursor:pointer;
+}
+
+/* ================= CARDS ================= */
 
 .card-grid{
   display:grid;
@@ -114,71 +150,73 @@ body{
 .card{
   background:var(--card);
   padding:15px;
-  border-radius:10px;
+  border-radius:12px;
+  box-shadow:0 8px 25px rgba(0,0,0,.4);
 }
 
 .section{
   margin-top:30px;
 }
 
-/* ===== DESKTOP UPGRADE ===== */
-@media(min-width:768px){
+/* ================= MOBILE ================= */
 
-  .navbar{
-    flex-direction:row;
-    justify-content:space-between;
-    align-items:center;
+@media(max-width:768px){
+  .main{
+    margin-left:0;
   }
-
-  .card-grid{
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  }
-
 }
 
 </style>
 </head>
+
 <body>
 
-<!-- ================= NAVIGATION ================= -->
-<nav class="navbar">
+<!-- ================= SIDEBAR ================= -->
+<div id="sidebar" class="sidebar">
 
-  <h1><i class="bi bi-graph-up"></i> ANH Dashboard</h1>
+  <h2><i class="bi bi-graph-up"></i> ANH Dashboard</h2>
 
-  <div class="nav-links">
-    <a href="Setting.htm"><i class="bi bi-person"></i> Profile</a>
-    <a href="ScriptoDocumentation.htm"><i class="bi bi-journal-text"></i> Docs</a>
-    <a href="https://akshat-881236.github.io/AkshatNetworkHub/" target="_blank">Home</a>
-    <a href="https://akshat-881236.github.io/Portfolio-881236/" target="_blank">Portfolio</a>
-    <a href="https://akshat-881236.github.io/Quizzone/" target="_blank">Quizzone</a>
-    <a href="https://akshat-881236.github.io/SearchEngine/" target="_blank">Search Engine</a>
-    <a href="https://akshat-881236.github.io/Key-of-Success/" target="_blank">EIMS Tools</a>
-    <a href="https://akshat-881236.github.io/DPGStudent-881238/" target="_blank">About DPG STM</a>
-    <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
-  </div>
+  <a href="Setting.htm"><i class="bi bi-person"></i> Profile Settings</a>
+  <a href="ScriptoDocumentation.htm"><i class="bi bi-journal-text"></i> Documentation</a>
 
-</nav>
+  <hr style="border-color:#334155;">
+
+  <a href="https://akshat-881236.github.io/AkshatNetworkHub/" target="_blank">Hub</a>
+  <a href="https://akshat-881236.github.io/Portfolio-881236/" target="_blank">Portfolio</a>
+  <a href="https://akshat-881236.github.io/Quizzone/" target="_blank">Quizzone</a>
+  <a href="https://akshat-881236.github.io/SearchEngine/" target="_blank">Search Engine</a>
+  <a href="https://akshat-881236.github.io/Key-of-Success/" target="_blank">EIMS Tools</a>
+  <a href="https://akshat-881236.github.io/DPGStudent-881238/" target="_blank">About DPG STM</a>
+
+  <hr style="border-color:#334155;">
+
+  <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+
+</div>
 
 <!-- ================= MAIN ================= -->
-<div class="container">
+<div id="mainContent" class="main">
 
-<h2>Akshat Network Hub User Analysis Report</h2>
-<p id="activeUser" style="color:var(--muted);"></p>
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleSidebar()">
+      <i class="bi bi-list"></i>
+    </button>
+    <span id="activeUser" style="color:var(--muted);"></span>
+  </div>
 
-<!-- SUMMARY -->
-<div id="summaryCards" class="card-grid"></div>
+  <h1>Akshat Network Hub User Analysis Report</h1>
 
-<!-- CHART -->
-<div class="section">
-  <h3>Analytics Overview</h3>
-  <canvas id="visitChart"></canvas>
-</div>
+  <div id="summaryCards" class="card-grid"></div>
 
-<!-- TABLE -->
-<div class="section">
-  <h3>User Activity</h3>
-  <div id="userActivity"></div>
-</div>
+  <div class="section">
+    <h3>Analytics Overview</h3>
+    <canvas id="visitChart"></canvas>
+  </div>
+
+  <div class="section">
+    <h3>User Activity</h3>
+    <div id="userActivity"></div>
+  </div>
 
 </div>
 
@@ -197,8 +235,13 @@ function checkSession(){
 
   document.getElementById("activeUser").innerText="Active User: "+user;
 }
-
 checkSession();
+
+/* ================= SIDEBAR TOGGLE ================= */
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("closed");
+  document.getElementById("mainContent").classList.toggle("full");
+}
 
 /* ================= LOGOUT ================= */
 function logout(){
@@ -208,7 +251,6 @@ function logout(){
 
 /* ================= LOAD MODULES ================= */
 function loadModules(){
-
   const dash=document.createElement("script");
   dash.src="dashboard.js";
   document.body.appendChild(dash);
@@ -217,7 +259,6 @@ function loadModules(){
   charts.src="charts.js";
   document.body.appendChild(charts);
 }
-
 loadModules();
 
 </script>
