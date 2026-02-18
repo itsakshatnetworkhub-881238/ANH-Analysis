@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANH Sign Up</title>
+
+<style>
+
+/* ===== ROOT VARIABLES ===== */
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --accent:#2563eb;
+  --accent-light:#3b82f6;
+  --success:#16a34a;
+  --warning:#f59e0b;
+  --danger:#dc2626;
+  --text:#f1f5f9;
+}
+
+/* ===== GLOBAL ===== */
+body{
+  margin:0;
+  font-family:system-ui, -apple-system, sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--card);
+  padding:30px;
+  border-radius:14px;
+  width:100%;
+  max-width:480px;
+  box-shadow:0 15px 40px rgba(0,0,0,.5);
+  transition:.3s ease;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 20px 50px rgba(0,0,0,.7);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* ===== INPUTS ===== */
+.input-group{
+  margin-bottom:15px;
+}
+
+input, select{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:white;
+  transition:.3s;
+}
+
+input:focus{
+  border-color:var(--accent);
+  outline:none;
+  box-shadow:0 0 10px rgba(37,99,235,.4);
+}
+
+/* ===== PASSWORD STRENGTH ===== */
+#strengthBar{
+  height:6px;
+  border-radius:6px;
+  margin-top:5px;
+  background:var(--danger);
+  transition:.3s;
+}
+
+/* ===== CHECKBOX ===== */
+.checkbox{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+  font-size:13px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.3s;
+  margin-top:15px;
+}
+
+button:hover{
+  background:var(--accent-light);
+}
+
+/* ===== MEDIA ===== */
+@media (min-width:768px){
+  .card{
+    max-width:550px;
+  }
+}
+
+@media (min-width:1024px){
+  .card{
+    max-width:600px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Create ANH Account</h2>
+
+<div class="input-group">
+<input type="email" id="email" placeholder="Email" required>
+</div>
+
+<div class="input-group">
+<input type="text" id="name" placeholder="Full Name" required>
+</div>
+
+<div class="input-group">
+<input type="text" id="username" placeholder="Username" required>
+</div>
+
+<div class="input-group">
+<input type="date" id="dob" required>
+</div>
+
+<div class="input-group">
+<input type="password" id="password" placeholder="Password" oninput="checkStrength()">
+<div id="strengthBar"></div>
+</div>
+
+<div class="input-group">
+<input type="password" id="confirm" placeholder="Confirm Password">
+</div>
+
+<h4>Recovery Question Set (Choose Any 3)</h4>
+
+<select id="recovery1">
+<option value="">Select Question</option>
+<option>Father Name</option>
+<option>Mother Name</option>
+<option>Favorite Color</option>
+<option>Favorite Actor</option>
+<option>Favorite Sport</option>
+<option>Lucky Number</option>
+</select>
+
+<input type="text" id="answer1" placeholder="Answer">
+
+<select id="recovery2"></select>
+<input type="text" id="answer2" placeholder="Answer">
+
+<select id="recovery3"></select>
+<input type="text" id="answer3" placeholder="Answer">
+
+<div class="checkbox">
+<input type="checkbox" id="privacy">
+<label for="privacy">
+I agree to store my records locally in browser (IndexedDB).
+</label>
+</div>
+
+<button onclick="register()">Register</button>
+
+<p style="text-align:center;margin-top:15px;">
+Already have account? <a href="login.htm" style="color:#3b82f6;">Login</a>
+</p>
+
+</div>
+
+<script>
+
+/* ===== DATABASE INIT ===== */
+const DB_NAME="ANH_DB";
+let db;
+
+const req=indexedDB.open(DB_NAME,1);
+req.onupgradeneeded=e=>{
+  db=e.target.result;
+  if(!db.objectStoreNames.contains("users")){
+    db.createObjectStore("users",{keyPath:"email"});
+  }
+};
+req.onsuccess=e=>{db=e.target.result};
+
+/* ===== AGE CHECK ===== */
+function validAge(dob){
+  const age=new Date().getFullYear()-new Date(dob).getFullYear();
+  return age>=12;
+}
+
+/* ===== PASSWORD STRENGTH ===== */
+function checkStrength(){
+  const pass=password.value;
+  const bar=strengthBar;
+
+  if(pass.length<8){
+    bar.style.background="#dc2626";
+  }
+  else if(/[A-Z]/.test(pass)&&/[0-9]/.test(pass)){
+    bar.style.background="#f59e0b";
+  }
+  else if(/[A-Z]/.test(pass)&&/[0-9]/.test(pass)&&/[@$!%*?&]/.test(pass)){
+    bar.style.background="#16a34a";
+  }
+}
+
+/* ===== ANH HASH ===== */
+function generateANHHash(password){
+  const ascii=password.split('').map(c=>c.charCodeAt(0)).join('');
+  const seq=['anh','nah','han','nha'];
+  let result='',ptr=0;
+
+  for(let i=0;i<ascii.length;i+=6){
+    result+=ascii.substring(i,i+6);
+    if(i+6<ascii.length){
+      result+=seq[ptr];
+      ptr=(ptr+1)%seq.length;
+    }
+  }
+  return result;
+}
+
+/* ===== PASSWORD UNIQUE CHECK ===== */
+function isPasswordUsed(hash){
+  return new Promise(resolve=>{
+    const tx=db.transaction("users","readonly");
+    const store=tx.objectStore("users");
+    const req=store.getAll();
+    req.onsuccess=()=>{
+      resolve(req.result.some(user=>user.password===hash));
+    }
+  });
+}
+
+/* ===== REGISTER ===== */
+async function register(){
+
+  if(!privacy.checked){
+    alert("You must accept privacy policy.");
+    return;
+  }
+
+  if(!validAge(dob.value)){
+    alert("Minimum age requirement is 12.");
+    return;
+  }
+
+  if(password.value!==confirm.value){
+    alert("Passwords do not match.");
+    return;
+  }
+
+  const strong=password.value.length>=8 &&
+    /[A-Z]/.test(password.value) &&
+    /[0-9]/.test(password.value) &&
+    /[@$!%*?&]/.test(password.value);
+
+  if(!strong){
+    alert("Password must be strong (8+ chars, uppercase, number, symbol).");
+    return;
+  }
+
+  const hash=generateANHHash(password.value);
+
+  if(await isPasswordUsed(hash)){
+    alert("Password already used. Choose different one.");
+    return;
+  }
+
+  const tx=db.transaction("users","readwrite");
+  const store=tx.objectStore("users");
+
+  store.add({
+    email:email.value,
+    name:name.value,
+    username:username.value,
+    dob:dob.value,
+    password:hash,
+    recovery:[
+      {q:recovery1.value,a:answer1.value},
+      {q:recovery2.value,a:answer2.value},
+      {q:recovery3.value,a:answer3.value}
+    ]
+  });
+
+  alert("Account Created Successfully.");
+  window.location.href="login.htm";
+}
+
+</script>
+
+</body>
+</html>
