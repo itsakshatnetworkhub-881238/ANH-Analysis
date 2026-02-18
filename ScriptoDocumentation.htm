@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scripto Algorithm Documentation | ANH</title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --accent:#3b82f6;
+  --text:#f1f5f9;
+  --muted:#94a3b8;
+}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:var(--text);
+  line-height:1.7;
+}
+
+header{
+  padding:30px;
+  text-align:center;
+  background:#111827;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+
+header h1{
+  margin:0;
+  font-size:28px;
+}
+
+header p{
+  color:var(--muted);
+  margin-top:10px;
+}
+
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:30px 20px;
+}
+
+.section{
+  background:var(--card);
+  padding:25px;
+  margin-bottom:25px;
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  transition:.3s;
+}
+
+.section:hover{
+  transform:translateY(-3px);
+}
+
+h2{
+  border-left:5px solid var(--accent);
+  padding-left:10px;
+}
+
+code{
+  background:#0f172a;
+  padding:5px 8px;
+  border-radius:6px;
+  color:#38bdf8;
+}
+
+.diagram{
+  background:#0f172a;
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
+  font-family:monospace;
+  color:#22c55e;
+  white-space:pre-line;
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+@media (max-width:768px){
+  header h1{font-size:22px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Scripto Algorithm Documentation</h1>
+<p>Permission-Based Metadata Governance Engine</p>
+</header>
+
+<div class="container">
+
+<!-- ABOUT -->
+<div class="section">
+<h2>About Akshat Network Hub</h2>
+<p>
+ANH-Analysis is developed under the ecosystem of 
+<strong>Akshat Network Hub</strong>, founded by Akshat Prasad.
+The system focuses on structured innovation, privacy-first analytics, 
+and client-side governance.
+</p>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section">
+<h2>What is Scripto Algorithm?</h2>
+<p>
+Scripto is a permission-based metadata extraction engine.
+It activates only when a page explicitly defines:
+</p>
+
+<code>const url_Id = "UNIQUE_PAGE_ID";</code>
+
+<p>
+After a 6-second delay, it extracts:
+</p>
+<ul>
+<li>Page URL</li>
+<li>Title</li>
+<li>Description</li>
+<li>Logo (OG Image / Favicon / Fallback Scan)</li>
+</ul>
+</div>
+
+<!-- FLOW -->
+<div class="section">
+<h2>Scripto Execution Flow</h2>
+
+<div class="diagram">
+Page Load
+   ↓
+Wait 6 Seconds
+   ↓
+Check Session
+   ↓
+Extract Metadata
+   ↓
+Send to Collector
+   ↓
+Store in IndexedDB
+   ↓
+Display in Dashboard
+</div>
+
+</div>
+
+<!-- ANH HASH -->
+<div class="section">
+<h2>ANH Hash Algorithm (Public Overview)</h2>
+
+<p>
+The ANH Hash is a custom password transformation system.
+</p>
+
+<ul>
+<li>Convert each character to ASCII</li>
+<li>Inline numeric concatenation</li>
+<li>After every 6 digits insert rotating token</li>
+<li>Store only transformed output</li>
+</ul>
+
+<p><strong>Example (Partial):</strong></p>
+
+<code>
+Password → ASCII → 8011597...
+Insert → 801159anh97...
+</code>
+
+<p>
+Full transformation rules remain private for security integrity.
+</p>
+
+</div>
+
+<!-- DATABASE -->
+<div class="section">
+<h2>Database Architecture</h2>
+
+<div class="diagram">
+Database: ANH_DB
+
+Object Stores:
+- users
+- analytics
+- sessions
+- guestVisits
+</div>
+
+<p>
+All storage is performed locally via IndexedDB.
+No server transmission occurs.
+</p>
+
+</div>
+
+<!-- SECURITY -->
+<div class="section">
+<h2>Security Model</h2>
+
+<ul>
+<li>Session-based validation (30 min expiry)</li>
+<li>Guest access limit (3 pages/day)</li>
+<li>IndexedDB structured isolation</li>
+<li>No cloud storage</li>
+<li>No third-party trackers</li>
+<li>Explicit script permission required</li>
+</ul>
+
+</div>
+
+<!-- GOVERNANCE -->
+<div class="section">
+<h2>Governance Philosophy</h2>
+
+<p>
+The system aligns with a privacy-first architecture:
+</p>
+
+<ul>
+<li>Learn</li>
+<li>Build</li>
+<li>Connect</li>
+</ul>
+
+<p>
+It empowers users to manage analytics locally while maintaining
+controlled access through authentication and permission scripts.
+</p>
+
+</div>
+
+<!-- ROADMAP -->
+<div class="section">
+<h2>Future Expansion</h2>
+
+<ul>
+<li>Encrypted IndexedDB Layer</li>
+<li>Multi-role Governance (Admin/User)</li>
+<li>Token-based Scripto v2</li>
+<li>Network-level Analytics Dashboard</li>
+<li>PWA Mode</li>
+</ul>
+
+</div>
+
+</div>
+
+<footer>
+© 2026 Akshat Network Hub · Scripto Algorithm Documentation
+</footer>
+
+</body>
+</html>
