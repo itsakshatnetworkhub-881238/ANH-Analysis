@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANH Account Settings</title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --accent:#2563eb;
+  --accent-light:#3b82f6;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --text:#f1f5f9;
+}
+
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:var(--text);
+  padding:20px;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+}
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+
+.card:hover{
+  transform:translateY(-2px);
+  transition:.3s;
+}
+
+h2{
+  margin-top:0;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:white;
+}
+
+textarea{
+  resize:none;
+  min-height:120px;
+}
+
+button{
+  padding:10px 15px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+button:hover{
+  background:var(--accent-light);
+}
+
+.photo-preview{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+  margin-bottom:10px;
+}
+
+.bg-preview{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.story-box{
+  background:#0f172a;
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+}
+
+@media (max-width:768px){
+  .photo-preview{
+    width:90px;
+    height:90px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- PROFILE SECTION -->
+<div class="card">
+<h2>Akshat Network Hub Profile Settings</h2>
+
+<img id="profilePreview" class="photo-preview">
+<input type="file" id="profilePhoto" accept="image/*">
+
+<img id="bgPreview" class="bg-preview">
+<input type="file" id="backgroundPhoto" accept="image/*">
+
+<input type="text" id="name" placeholder="Full Name">
+<input type="date" id="dob">
+<textarea id="bio" maxlength="300" placeholder="Short Bio (300 chars max)"></textarea>
+
+<input type="text" id="address" placeholder="Address">
+<input type="text" id="contact" placeholder="Contact Number">
+
+<h3>Social Links</h3>
+<input type="url" id="linkedin" placeholder="LinkedIn URL">
+<input type="url" id="github" placeholder="GitHub URL">
+<input type="url" id="twitter" placeholder="Twitter URL">
+<input type="url" id="facebook" placeholder="Facebook URL">
+<input type="url" id="instagram" placeholder="Instagram URL">
+
+<button onclick="saveProfile()">Save Profile</button>
+</div>
+
+<!-- STORIES SECTION -->
+<div class="card">
+<h2>My Stories (Max 2500 Characters Each)</h2>
+
+<textarea id="storyInput" maxlength="2500" placeholder="Write your story..."></textarea>
+<button onclick="addStory()">Add Story</button>
+
+<div id="storiesContainer"></div>
+</div>
+
+</div>
+
+<script>
+
+const DB_NAME="ANH_DB";
+let db, activeUser;
+
+/* ===== INIT DB ===== */
+const req=indexedDB.open(DB_NAME,1);
+req.onupgradeneeded=e=>{
+  db=e.target.result;
+  if(!db.objectStoreNames.contains("users")){
+    db.createObjectStore("users",{keyPath:"email"});
+  }
+};
+req.onsuccess=e=>{
+  db=e.target.result;
+  checkSession();
+};
+
+/* ===== SESSION CHECK ===== */
+function checkSession(){
+  activeUser=sessionStorage.getItem("ANH_ACTIVE_USER");
+  const expiry=sessionStorage.getItem("ANH_SESSION_EXPIRY");
+
+  if(!activeUser || Date.now()>expiry){
+    window.location.href="login.htm";
+    return;
+  }
+  loadProfile();
+}
+
+/* ===== LOAD PROFILE ===== */
+function loadProfile(){
+  const tx=db.transaction("users","readonly");
+  const store=tx.objectStore("users");
+  const req=store.get(activeUser);
+
+  req.onsuccess=function(){
+    const user=req.result;
+    if(!user) return;
+
+    name.value=user.name||"";
+    dob.value=user.dob||"";
+    bio.value=user.bio||"";
+    address.value=user.address||"";
+    contact.value=user.contact||"";
+
+    linkedin.value=user.linkedin||"";
+    github.value=user.github||"";
+    twitter.value=user.twitter||"";
+    facebook.value=user.facebook||"";
+    instagram.value=user.instagram||"";
+
+    profilePreview.src=user.profilePhoto||"";
+    bgPreview.src=user.backgroundPhoto||"";
+
+    renderStories(user.stories||[]);
+  };
+}
+
+/* ===== SAVE PROFILE ===== */
+function saveProfile(){
+
+  const age=new Date().getFullYear()-new Date(dob.value).getFullYear();
+  if(age<12){
+    alert("Minimum age is 12.");
+    return;
+  }
+
+  const tx=db.transaction("users","readwrite");
+  const store=tx.objectStore("users");
+
+  const req=store.get(activeUser);
+  req.onsuccess=function(){
+    const user=req.result;
+
+    user.name=name.value;
+    user.dob=dob.value;
+    user.bio=bio.value;
+    user.address=address.value;
+    user.contact=contact.value;
+
+    user.linkedin=linkedin.value;
+    user.github=github.value;
+    user.twitter=twitter.value;
+    user.facebook=facebook.value;
+    user.instagram=instagram.value;
+
+    store.put(user);
+    alert("Profile Updated.");
+  };
+}
+
+/* ===== PHOTO HANDLING ===== */
+profilePhoto.addEventListener("change",function(){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    profilePreview.src=e.target.result;
+    updatePhoto("profilePhoto",e.target.result);
+  };
+  reader.readAsDataURL(this.files[0]);
+});
+
+backgroundPhoto.addEventListener("change",function(){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    bgPreview.src=e.target.result;
+    updatePhoto("backgroundPhoto",e.target.result);
+  };
+  reader.readAsDataURL(this.files[0]);
+});
+
+function updatePhoto(field,value){
+  const tx=db.transaction("users","readwrite");
+  const store=tx.objectStore("users");
+  const req=store.get(activeUser);
+
+  req.onsuccess=function(){
+    const user=req.result;
+    user[field]=value;
+    store.put(user);
+  };
+}
+
+/* ===== STORIES ===== */
+function addStory(){
+
+  if(storyInput.value.length>2500){
+    alert("Story exceeds limit.");
+    return;
+  }
+
+  const tx=db.transaction("users","readwrite");
+  const store=tx.objectStore("users");
+  const req=store.get(activeUser);
+
+  req.onsuccess=function(){
+    const user=req.result;
+
+    if(!user.stories) user.stories=[];
+    user.stories.push({
+      content:storyInput.value,
+      date:new Date().toISOString()
+    });
+
+    store.put(user);
+    storyInput.value="";
+    renderStories(user.stories);
+  };
+}
+
+function renderStories(stories){
+  storiesContainer.innerHTML="";
+  stories.forEach((story,index)=>{
+    storiesContainer.innerHTML+=`
+      <div class="story-box">
+        <p>${story.content}</p>
+        <small>${new Date(story.date).toLocaleString()}</small>
+      </div>
+    `;
+  });
+}
+
+</script>
+
+</body>
+</html>
