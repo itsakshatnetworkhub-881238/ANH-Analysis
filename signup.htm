@@ -6,8 +6,6 @@
 <title>ANH Sign Up</title>
 
 <style>
-
-/* ===== ROOT VARIABLES ===== */
 :root{
   --bg:#0f172a;
   --card:#1e293b;
@@ -19,10 +17,9 @@
   --text:#f1f5f9;
 }
 
-/* ===== GLOBAL ===== */
 body{
   margin:0;
-  font-family:system-ui, -apple-system, sans-serif;
+  font-family:system-ui;
   background:linear-gradient(135deg,#0f172a,#1e293b);
   color:var(--text);
   display:flex;
@@ -31,64 +28,23 @@ body{
   padding:20px;
 }
 
-/* ===== CARD ===== */
 .card{
   background:var(--card);
   padding:30px;
   border-radius:14px;
   width:100%;
-  max-width:480px;
+  max-width:500px;
   box-shadow:0 15px 40px rgba(0,0,0,.5);
-  transition:.3s ease;
-}
-
-.card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 20px 50px rgba(0,0,0,.7);
-}
-
-h2{
-  text-align:center;
-  margin-bottom:20px;
-}
-
-/* ===== INPUTS ===== */
-.input-group{
-  margin-bottom:15px;
 }
 
 input, select{
   width:100%;
-  padding:12px;
-  border-radius:8px;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:6px;
   border:1px solid #334155;
   background:#0f172a;
   color:white;
-  transition:.3s;
-}
-
-input:focus{
-  border-color:var(--accent);
-  outline:none;
-  box-shadow:0 0 10px rgba(37,99,235,.4);
-}
-
-/* ===== PASSWORD STRENGTH ===== */
-#strengthBar{
-  height:6px;
-  border-radius:6px;
-  margin-top:5px;
-  background:var(--danger);
-  transition:.3s;
-}
-
-/* ===== CHECKBOX ===== */
-.checkbox{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:10px;
-  font-size:13px;
 }
 
 button{
@@ -100,27 +56,14 @@ button{
   color:white;
   font-weight:bold;
   cursor:pointer;
-  transition:.3s;
-  margin-top:15px;
 }
 
-button:hover{
-  background:var(--accent-light);
+#strengthBar{
+  height:6px;
+  border-radius:6px;
+  margin-bottom:10px;
+  background:var(--danger);
 }
-
-/* ===== MEDIA ===== */
-@media (min-width:768px){
-  .card{
-    max-width:550px;
-  }
-}
-
-@media (min-width:1024px){
-  .card{
-    max-width:600px;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -128,91 +71,82 @@ button:hover{
 <div class="card">
 <h2>Create Akshat Network Hub Account</h2>
 
-<div class="input-group">
 <input type="email" id="email" placeholder="Email" required>
-</div>
-
-<div class="input-group">
 <input type="text" id="name" placeholder="Full Name" required>
-</div>
-
-<div class="input-group">
 <input type="text" id="username" placeholder="Username" required>
-</div>
-
-<div class="input-group">
 <input type="date" id="dob" required>
-</div>
 
-<div class="input-group">
 <input type="password" id="password" placeholder="Password" oninput="checkStrength()">
 <div id="strengthBar"></div>
-</div>
 
-<div class="input-group">
-<input type="password" id="confirm" placeholder="Confirm Password">
-</div>
+<input type="password" id="confirmPassword" placeholder="Confirm Password">
 
-<h4>Recovery Question Set (Choose Any 3)</h4>
+<h4>Select Any 3 Recovery Questions</h4>
 
-<select id="recovery1">
-<option value="">Select Question</option>
-<option>Father Name</option>
-<option>Mother Name</option>
-<option>Favorite Color</option>
-<option>Favorite Actor</option>
-<option>Favorite Sport</option>
-<option>Lucky Number</option>
-</select>
+<select class="recovery"></select>
+<input type="text" class="answer" placeholder="Answer">
 
-<input type="text" id="answer1" placeholder="Answer">
+<select class="recovery"></select>
+<input type="text" class="answer" placeholder="Answer">
 
-<select id="recovery2"></select>
-<input type="text" id="answer2" placeholder="Answer">
+<select class="recovery"></select>
+<input type="text" class="answer" placeholder="Answer">
 
-<select id="recovery3"></select>
-<input type="text" id="answer3" placeholder="Answer">
-
-<div class="checkbox">
+<label>
 <input type="checkbox" id="privacy">
-<label for="privacy">
-I agree to store my records locally in browser (IndexedDB).
+ I agree to store data locally (IndexedDB)
 </label>
-</div>
 
 <button onclick="register()">Register</button>
-
-<p style="text-align:center;margin-top:15px;">
-Already have account? <a href="login.htm" style="color:#3b82f6;">Login</a>
-</p>
-
 </div>
 
 <script>
-
-/* ===== DATABASE INIT ===== */
+/* ===== DATABASE ===== */
 const DB_NAME="ANH_DB";
 let db;
 
-const req=indexedDB.open(DB_NAME,1);
-req.onupgradeneeded=e=>{
+const request=indexedDB.open(DB_NAME,1);
+request.onupgradeneeded=e=>{
   db=e.target.result;
-  if(!db.objectStoreNames.contains("users")){
-    db.createObjectStore("users",{keyPath:"email"});
-  }
+  db.createObjectStore("users",{keyPath:"email"});
 };
-req.onsuccess=e=>{db=e.target.result};
+request.onsuccess=e=>db=e.target.result;
+
+/* ===== RECOVERY QUESTIONS POOL ===== */
+const questions=[
+"Father Name",
+"Mother Name",
+"Favorite Color",
+"Favorite Actor",
+"Favorite Sport",
+"Lucky Number",
+"Birth City",
+"Best Friend Name"
+];
+
+document.querySelectorAll(".recovery").forEach(select=>{
+  select.innerHTML="<option value=''>Select Question</option>";
+  questions.forEach(q=>{
+    select.innerHTML+=`<option>${q}</option>`;
+  });
+});
 
 /* ===== AGE CHECK ===== */
 function validAge(dob){
-  const age=new Date().getFullYear()-new Date(dob).getFullYear();
+  const birth=new Date(dob);
+  const today=new Date();
+  let age=today.getFullYear()-birth.getFullYear();
+  const m=today.getMonth()-birth.getMonth();
+  if(m<0 || (m===0 && today.getDate()<birth.getDate())){
+    age--;
+  }
   return age>=12;
 }
 
 /* ===== PASSWORD STRENGTH ===== */
 function checkStrength(){
-  const pass=password.value;
-  const bar=strengthBar;
+  const pass=document.getElementById("password").value;
+  const bar=document.getElementById("strengthBar");
 
   if(pass.length<8){
     bar.style.background="#dc2626";
@@ -220,7 +154,7 @@ function checkStrength(){
   else if(/[A-Z]/.test(pass)&&/[0-9]/.test(pass)){
     bar.style.background="#f59e0b";
   }
-  else if(/[A-Z]/.test(pass)&&/[0-9]/.test(pass)&&/[@$!%*?&]/.test(pass)){
+  if(/[A-Z]/.test(pass)&&/[0-9]/.test(pass)&&/[@$!%*?&]/.test(pass)){
     bar.style.background="#16a34a";
   }
 }
@@ -241,73 +175,110 @@ function generateANHHash(password){
   return result;
 }
 
-/* ===== PASSWORD UNIQUE CHECK ===== */
+/* ===== CHECK PASSWORD UNIQUE ===== */
 function isPasswordUsed(hash){
   return new Promise(resolve=>{
     const tx=db.transaction("users","readonly");
     const store=tx.objectStore("users");
     const req=store.getAll();
     req.onsuccess=()=>{
-      resolve(req.result.some(user=>user.password===hash));
-    }
+      resolve(req.result.some(u=>u.password===hash));
+    };
   });
 }
 
 /* ===== REGISTER ===== */
 async function register(){
 
-  if(!privacy.checked){
-    alert("You must accept privacy policy.");
+  if(!db){
+    alert("Database not ready. Try again.");
     return;
   }
 
-  if(!validAge(dob.value)){
-    alert("Minimum age requirement is 12.");
+  const email=document.getElementById("email").value.trim();
+  const name=document.getElementById("name").value.trim();
+  const username=document.getElementById("username").value.trim();
+  const dob=document.getElementById("dob").value;
+  const password=document.getElementById("password").value;
+  const confirmPassword=document.getElementById("confirmPassword").value;
+  const privacy=document.getElementById("privacy").checked;
+
+  if(!email||!name||!username||!dob||!password||!confirmPassword){
+    alert("Please fill all fields");
     return;
   }
 
-  if(password.value!==confirm.value){
-    alert("Passwords do not match.");
+  if(!privacy){
+    alert("Accept privacy policy");
     return;
   }
 
-  const strong=password.value.length>=8 &&
-    /[A-Z]/.test(password.value) &&
-    /[0-9]/.test(password.value) &&
-    /[@$!%*?&]/.test(password.value);
+  if(!validAge(dob)){
+    alert("Minimum age is 12");
+    return;
+  }
+
+  if(password!==confirmPassword){
+    alert("Passwords do not match");
+    return;
+  }
+
+  const strong=password.length>=8 &&
+    /[A-Z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[@$!%*?&]/.test(password);
 
   if(!strong){
-    alert("Password must be strong (8+ chars, uppercase, number, symbol).");
+    alert("Password must be strong");
     return;
   }
 
-  const hash=generateANHHash(password.value);
+  const hash=generateANHHash(password);
 
   if(await isPasswordUsed(hash)){
-    alert("Password already used. Choose different one.");
+    alert("Password already used");
     return;
+  }
+
+  /* Recovery Validation */
+  const selects=document.querySelectorAll(".recovery");
+  const answers=document.querySelectorAll(".answer");
+  let recovery=[];
+  let chosen=[];
+
+  for(let i=0;i<selects.length;i++){
+    const q=selects[i].value;
+    const a=answers[i].value.trim();
+
+    if(!q||!a){
+      alert("Fill all recovery questions");
+      return;
+    }
+
+    if(chosen.includes(q)){
+      alert("Recovery questions must be unique");
+      return;
+    }
+
+    chosen.push(q);
+    recovery.push({q,a});
   }
 
   const tx=db.transaction("users","readwrite");
   const store=tx.objectStore("users");
 
   store.add({
-    email:email.value,
-    name:name.value,
-    username:username.value,
-    dob:dob.value,
+    email,
+    name,
+    username,
+    dob,
     password:hash,
-    recovery:[
-      {q:recovery1.value,a:answer1.value},
-      {q:recovery2.value,a:answer2.value},
-      {q:recovery3.value,a:answer3.value}
-    ]
+    recovery
   });
 
-  alert("Account Created Successfully.");
+  alert("Account Created Successfully");
   window.location.href="login.htm";
 }
-
 </script>
 
 </body>
