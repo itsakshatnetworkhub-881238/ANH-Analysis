@@ -15,7 +15,7 @@
     const DB_NAME = "ANH_v1.0 db";
     const STORE_NAME = "history";
     const DB_VERSION = 1;
-    const DASHBOARD_URL = "/index.htm";
+    const DASHBOARD_URL = "https://itsakshatnetworkhub-881238.github.io/ANH-Analysis/";
     const DUPLICATE_WINDOW_MS = 10000;
 
     /* ==============================
