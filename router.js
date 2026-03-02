@@ -1,201 +1,236 @@
-/**
- * router.js
- * Advanced ANH History Tracker
- * Features:
- * - IndexedDB storage
- * - Duplicate prevention
- * - Session tracking
- * - Resume journey popup
- * - Dashboard quick access
- */
+// =====================================
+// ANH - Akshat Network Hub
+// Router.js - URL History Manager
+// IndexedDB Integration for Data Storage
+// =====================================
 
-(function () {
-    "use strict";
+class HistoryRouter {
+  constructor() {
+    this.dbName = 'ANH_HistoryDB';
+    this.storeName = 'urlHistory';
+    this.db = null;
+    this.screenTimeStart = null;
+    this.currentUrl = null;
+    
+    this.initDB();
+    this.setupEventListeners();
+    this.startScreenTimeTracking();
+  }
 
-    const DB_NAME = "ANH_v1.0 db";
-    const STORE_NAME = "history";
-    const DB_VERSION = 1;
-    const DASHBOARD_URL = "https://itsakshatnetworkhub-881238.github.io/ANH-Analysis/";
-    const DUPLICATE_WINDOW_MS = 10000;
+  // Initialize IndexedDB
+  initDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, 1);
 
-    /* ==============================
-       DATABASE
-    ============================== */
+      request.onerror = () => {
+        console.error('Database failed to open');
+        reject(request.error);
+      };
 
-    function openDatabase() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onsuccess = () => {
+        this.db = request.result;
+        console.log('Database opened successfully');
+        resolve(this.db);
+      };
 
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    const store = db.createObjectStore(STORE_NAME, {
-                        keyPath: "id",
-                        autoIncrement: true
-                    });
-                    store.createIndex("url", "url", { unique: false });
-                    store.createIndex("timestamp", "timestamp", { unique: false });
-                    store.createIndex("sessionId", "sessionId", { unique: false });
-                }
-            };
-
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-    }
-
-    /* ==============================
-       SESSION MANAGEMENT
-    ============================== */
-
-    function getSessionId() {
-        let sessionId = sessionStorage.getItem("ANH_SESSION_ID");
-        if (!sessionId) {
-            sessionId = crypto.randomUUID();
-            sessionStorage.setItem("ANH_SESSION_ID", sessionId);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const objectStore = db.createObjectStore(this.storeName, { 
+            keyPath: 'id', 
+            autoIncrement: true 
+          });
+          
+          objectStore.createIndex('url', 'url', { unique: false });
+          objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+          objectStore.createIndex('title', 'title', { unique: false });
+          
+          console.log('Object store created with indexes');
         }
-        return sessionId;
-    }
+      };
+    });
+  }
 
-    /* ==============================
-       SAVE HISTORY
-    ============================== */
+  // Start Screen Time Tracking
+  startScreenTimeTracking() {
+    this.screenTimeStart = Date.now();
+    this.currentUrl = window.location.href;
 
-    async function saveHistory() {
-        const db = await openDatabase();
-        const tx = db.transaction(STORE_NAME, "readonly");
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.getAll();
+    window.addEventListener('beforeunload', () => {
+      this.recordHistory();
+    });
 
-        request.onsuccess = async () => {
-            const records = request.result || [];
-            const now = Date.now();
-            const currentUrl = window.location.href;
+    window.addEventListener('focus', () => {
+      this.screenTimeStart = Date.now();
+    });
 
-            const recentDuplicate = records.find(
-                r => r.url === currentUrl && (now - r.timestamp < DUPLICATE_WINDOW_MS)
-            );
+    window.addEventListener('blur', () => {
+      this.recordHistory();
+    });
 
-            if (recentDuplicate) return;
+    // Track visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.recordHistory();
+      } else {
+        this.screenTimeStart = Date.now();
+      }
+    });
+  }
 
-            const writeTx = db.transaction(STORE_NAME, "readwrite");
-            writeTx.objectStore(STORE_NAME).add({
-                url: currentUrl,
-                title: document.title || "Untitled",
-                timestamp: now,
-                sessionId: getSessionId(),
-                referrer: document.referrer || null
-            });
-        };
-    }
+  // Extract and Store URL Information
+  async recordHistory() {
+    if (!this.screenTimeStart) return;
 
-    /* ==============================
-       GET LAST VISIT
-    ============================== */
+    const screentime = Math.round((Date.now() - this.screenTimeStart) / 1000);
+    
+    const historyEntry = {
+      url: this.currentUrl,
+      title: document.title || 'Untitled',
+      timestamp: new Date().toISOString(),
+      screentime: screentime,
+      pageLoadTime: Math.round(performance.timing.loadEventEnd - performance.timing.navigationStart),
+      domain: new URL(this.currentUrl).hostname
+    };
 
-    async function getLastVisitedPage() {
-        const db = await openDatabase();
-        return new Promise((resolve) => {
-            const tx = db.transaction(STORE_NAME, "readonly");
-            const store = tx.objectStore(STORE_NAME);
-            const request = store.getAll();
+    await this.addToHistory(historyEntry);
+    this.screenTimeStart = null;
+  }
 
-            request.onsuccess = () => {
-                const records = request.result || [];
-                const sorted = records.sort((a, b) => b.timestamp - a.timestamp);
-                const currentUrl = window.location.href;
+  // Add Entry to IndexedDB
+  async addToHistory(entry) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
+      const objectStore = transaction.objectStore(this.storeName);
+      const request = objectStore.add(entry);
 
-                const last = sorted.find(r => r.url !== currentUrl);
-                resolve(last || null);
-            };
-        });
-    }
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        console.log('Entry added to history:', entry);
+        this.updateDashboard();
+        resolve(request.result);
+      };
+    });
+  }
 
-    /* ==============================
-       POPUP UI
-    ============================== */
+  // Get All History Entries
+  async getAllHistory() {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readonly');
+      const objectStore = transaction.objectStore(this.storeName);
+      const request = objectStore.getAll();
 
-    function createPopup(lastPage) {
-        if (!lastPage) return;
-        if (sessionStorage.getItem("ANH_POPUP_DISMISSED")) return;
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+  }
 
-        const container = document.createElement("div");
-        container.style.position = "fixed";
-        container.style.bottom = "20px";
-        container.style.right = "20px";
-        container.style.width = "300px";
-        container.style.background = "#2c3e50";
-        container.style.color = "#fff";
-        container.style.padding = "15px";
-        container.style.borderRadius = "10px";
-        container.style.boxShadow = "0 5px 20px rgba(0,0,0,0.3)";
-        container.style.zIndex = "9999";
-        container.style.fontFamily = "Arial";
+  // Get History by URL
+  async getHistoryByUrl(url) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readonly');
+      const objectStore = transaction.objectStore(this.storeName);
+      const index = objectStore.index('url');
+      const request = index.getAll(url);
 
-        container.innerHTML = `
-            <strong>Resume Your Journey</strong>
-            <p style="font-size:13px;margin:8px 0;">
-                Last visited: ${lastPage.title}
-            </p>
-            <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                <button id="anh-resume">Resume</button>
-                <button id="anh-dashboard">Dashboard</button>
-                <button id="anh-close">X</button>
-            </div>
-        `;
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+  }
 
-        document.body.appendChild(container);
+  // Delete History Entry
+  async deleteHistory(id) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
+      const objectStore = transaction.objectStore(this.storeName);
+      const request = objectStore.delete(id);
 
-        document.getElementById("anh-resume").onclick = () => {
-            window.location.href = lastPage.url;
-        };
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        console.log('Entry deleted:', id);
+        this.updateDashboard();
+        resolve();
+      };
+    });
+  }
 
-        document.getElementById("anh-dashboard").onclick = () => {
-            window.location.href = DASHBOARD_URL;
-        };
+  // Clear All History
+  async clearAllHistory() {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
+      const objectStore = transaction.objectStore(this.storeName);
+      const request = objectStore.clear();
 
-        document.getElementById("anh-close").onclick = () => {
-            sessionStorage.setItem("ANH_POPUP_DISMISSED", "true");
-            container.remove();
-        };
-    }
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        console.log('All history cleared');
+        this.updateDashboard();
+        resolve();
+      };
+    });
+  }
 
-    /* ==============================
-       FLOATING DASHBOARD BUTTON
-    ============================== */
+  // Search History
+  async searchHistory(query) {
+    const allHistory = await this.getAllHistory();
+    return allHistory.filter(entry => 
+      entry.url.toLowerCase().includes(query.toLowerCase()) ||
+      entry.title.toLowerCase().includes(query.toLowerCase()) ||
+      entry.domain.toLowerCase().includes(query.toLowerCase())
+    );
+  }
 
-    function createFloatingDashboardButton() {
-        const btn = document.createElement("button");
-        btn.innerText = "ANH Dashboard";
-        btn.style.position = "fixed";
-        btn.style.bottom = "20px";
-        btn.style.left = "20px";
-        btn.style.padding = "10px 15px";
-        btn.style.background = "#3498db";
-        btn.style.color = "#fff";
-        btn.style.border = "none";
-        btn.style.borderRadius = "30px";
-        btn.style.cursor = "pointer";
-        btn.style.zIndex = "9999";
+  // Update Dashboard (will be called from dashboard.js)
+  async updateDashboard() {
+    const event = new CustomEvent('historyUpdated', { detail: await this.getAllHistory() });
+    document.dispatchEvent(event);
+  }
 
-        btn.onclick = () => {
-            window.location.href = DASHBOARD_URL;
-        };
+  // Setup Event Listeners
+  setupEventListeners() {
+    document.addEventListener('routerRevisit', (event) => {
+      window.open(event.detail.url, '_blank');
+    });
 
-        document.body.appendChild(btn);
-    }
+    document.addEventListener('routerDelete', (event) => {
+      this.deleteHistory(event.detail.id);
+    });
 
-    /* ==============================
-       INIT
-    ============================== */
+    document.addEventListener('routerClear', () => {
+      this.clearAllHistory();
+    });
 
-    async function init() {
-        await saveHistory();
-        const lastPage = await getLastVisitedPage();
-        createPopup(lastPage);
-        createFloatingDashboardButton();
-    }
+    document.addEventListener('routerSearch', async (event) => {
+      const results = await this.searchHistory(event.detail.query);
+      const searchEvent = new CustomEvent('searchResults', { detail: results });
+      document.dispatchEvent(searchEvent);
+    });
+  }
 
-    window.addEventListener("load", init);
+  // Format Time Display
+  formatTime(seconds) {
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+    return `${Math.floor(seconds / 3600)}h`;
+  }
 
-})();
+  // Format Timestamp
+  formatTimestamp(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+}
+
+// Initialize Router when DOM is ready
+let historyRouter;
+document.addEventListener('DOMContentLoaded', () => {
+  historyRouter = new HistoryRouter();
+});
