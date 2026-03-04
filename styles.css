@@ -778,3 +778,195 @@ body {
     page-break-inside: avoid;
   }
 }
+
+/* =====================================
+   EXTRA MOBILE OPTIMIZATION
+   No HTML / JS Changes Required
+   ===================================== */
+
+
+/* ===============================
+   SMALL PHONES (max-width: 480px)
+   =============================== */
+@media (max-width: 480px){
+
+  body{
+    font-size:14px;
+  }
+
+  .header{
+    padding:0.75rem;
+  }
+
+  .logo-img{
+    width:42px;
+    height:42px;
+  }
+
+  .site-title{
+    font-size:0.95rem;
+    letter-spacing:0.5px;
+  }
+
+  .site-subtitle{
+    font-size:0.6rem;
+  }
+
+  .nav-links{
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .nav-link{
+    width:100%;
+    text-align:center;
+    padding:0.65rem;
+    border-bottom:1px solid var(--border-color);
+  }
+
+  .dashboard-section{
+    padding:0.75rem;
+  }
+
+  .dashboard-header h2{
+    font-size:1.35rem;
+  }
+
+  .search-input{
+    font-size:0.85rem;
+  }
+
+  .btn-clear-all{
+    font-size:0.85rem;
+    padding:0.6rem;
+  }
+
+  .history-table tbody td{
+    grid-template-columns:110px 1fr;
+  }
+
+  .title-text{
+    font-size:0.85rem;
+  }
+
+  .url-text{
+    font-size:0.8rem;
+  }
+
+  .stats-grid{
+    grid-template-columns:1fr 1fr;
+    gap:0.75rem;
+  }
+
+  .stat-number{
+    font-size:1.5rem;
+  }
+
+}
+
+
+
+/* ===============================
+   COMPACT PHONES (max-width: 360px)
+   =============================== */
+@media (max-width: 360px){
+
+  .logo-img{
+    width:36px;
+    height:36px;
+  }
+
+  .site-title{
+    font-size:0.85rem;
+  }
+
+  .site-subtitle{
+    font-size:0.55rem;
+  }
+
+  .dashboard-header h2{
+    font-size:1.2rem;
+  }
+
+  .search-box{
+    padding:0.35rem;
+  }
+
+  .search-btn{
+    padding:0.4rem 0.6rem;
+  }
+
+  .history-table tbody td{
+    grid-template-columns:95px 1fr;
+  }
+
+  .action-buttons{
+    gap:0.25rem;
+  }
+
+  .btn-action{
+    padding:0.35rem;
+  }
+
+  .btn-action svg{
+    width:16px;
+    height:16px;
+  }
+
+  .stats-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
+
+
+/* ===============================
+   ULTRA SMALL DEVICES (max-width: 320px)
+   =============================== */
+@media (max-width: 320px){
+
+  body{
+    font-size:13px;
+  }
+
+  .main-content{
+    padding:1rem 0.5rem;
+  }
+
+  .dashboard-section{
+    padding:0.5rem;
+  }
+
+  .site-title{
+    font-size:0.8rem;
+  }
+
+  .nav-link{
+    font-size:0.75rem;
+    padding:0.5rem;
+  }
+
+  .search-input{
+    font-size:0.75rem;
+  }
+
+  .btn-clear-all{
+    font-size:0.75rem;
+  }
+
+  .history-table tbody td{
+    grid-template-columns:80px 1fr;
+  }
+
+  .footer-links{
+    flex-direction:column;
+    gap:0.5rem;
+  }
+
+}
+
+img{
+max-width:100%;
+height:auto;
+}
